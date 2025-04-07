@@ -1,0 +1,239 @@
+---
+title: "Data analysis replication assignment"
+author: "Yen Do"
+format: html
+editor: visual
+---
+
+## Introduction
+
+The paper "LHP1 and INO80 cooperate with ethylene signaling for warm ambient temperature response by activating specific bivalent genes" by Shao et al. 2024 demonstrate the involement of ethylene signaling in ambient temperature response in plant using model of *Arabidopsis thaliana*. In brief, ethylene signaling key factors/ protein EIN2 and EIN3 collaborate with 2 proteins LHP1 and INO80 to alter chromatin bivalency of H3K4me3 and H3K27me3, resulting in transcriptional activation in response to warm temperature.
+
+In the paper, authors studied phenotype, m-RNA expression level, protein interaction and methylate histone level of different single mutant lines (*ein2-5*, *ein3-1eil1-1*, *lhp1*, *ino80*) and higher order (ex: *ein2-5lhp1-6*) compared with wildtype (Col-0) to determine relationship of ethylene signaling factors and other heat response factors. Techniques:
+
+In my assignment, I replicated data below: 1. Phenotype measurement, presented in Figure 1 of orginal paper 2. RNA-seq data
+
+## Visualization of data
+
+```{r}
+#Loading all packages
+library(tidyverse)
+library(multcomp)
+library(multcompView)
+library(ggpubr)
+
+#Loading the fisrt data set: temperature response phenotype of mutants
+f1 <- "https://raw.githubusercontent.com/yendo3877/data-analysis-replication/refs/heads/main/data/2228_hypo3_lhp1.csv"
+d1 <- read.csv(f1, header = TRUE)
+head(d1)
+
+#Loading the second data set: RNA-seq of different mutants 
+f2 <- "https://raw.githubusercontent.com/yendo3877/data-analysis-replication/refs/heads/main/data/GSE256453_diff_wt_27vs21.csv"
+d2 <- read.csv(f2, header = TRUE)
+head(d2)
+
+f3 <- "https://raw.githubusercontent.com/yendo3877/data-analysis-replication/refs/heads/main/data/GSE256453_diff_ein2_27vs21.csv"
+d3 <- read.csv(f3, header = TRUE)
+head(d3)
+
+f4 <- "https://raw.githubusercontent.com/yendo3877/data-analysis-replication/refs/heads/main/data/GSE256453_diff_lhp1_27vs21.csv"
+d4 <- read.csv(f4, header = TRUE)
+head(d4)
+
+f5 <- "https://raw.githubusercontent.com/yendo3877/data-analysis-replication/refs/heads/main/data/GSE256453_diff_ein2lhp1_27vs21.csv"
+d5 <- read.csv(f5, header = TRUE)
+head(d5)
+```
+
+## Data analysis and Visualization Replication
+
+### Phenotype
+
+```{r}
+# Convert Genotype and Temp to factors
+d1a <- d1 |>
+  rename(Length = hypocotyl_length) |>
+  mutate(
+    Genotype = factor(Genotype, levels = unique(Genotype)),
+    Temp = factor(Temp),
+    Group = interaction(Genotype, Temp)
+  )
+
+d1a$Group <- as.factor(d1a$Group)
+# Check for any single-observation groups
+table(d1a$Group)
+
+# ANOVA
+aov_result <- aov(Length ~ Group, data = d1a)
+summary(aov_result)
+```
+Results 
+Then I peformed Tukey HSD test a
+
+```{r}
+# Tukey HSD and compact letter display
+tukey_result <- glht(aov_result, linfct = mcp(Group = "Tukey"))
+letters_df <- cld(tukey_result)$mcletters$Letters
+print(letters_df)
+```
+
+
+```{r}
+# Summary statistics + merge letters
+summary_df <- d1a %>%
+  group_by(Genotype, Temp, Group) %>%
+  summarise(
+    mean = mean(Length),
+    se = sd(Length) / sqrt(n()),
+    .groups = "drop"
+  ) %>%
+  mutate(Letters = letters_df[as.character(Group)])
+
+# Recode the variances
+summary_df <- summary_df |>
+  mutate(Genotype = dplyr::recode(Genotype,
+    "wt" = "Col-0",
+    "ein2" = "ein2-5",
+    "ein3" = "ein3-1 eil1-1",
+    "lhp1" = "lhp1-3",
+    "ein2lhp1" = "ein2-5 lhp1-3",
+   "ein3eil1lhp1" = "ein3-1 eil1-1 lhp1-3",
+   "lhp16" = "lhp1-6",
+    "ein2lhp16" = "ein2-5 lhp1-6",
+    "ein3eil1lhp16" = "ein3-1 eil1-1 lhp1-6",
+    "glhp1lhp16" = "proLHP1::gLHP1-GFP /lhp1-6",
+    "glhp1ein2lhp16" = "proLHP1::gLHP1-GFP /ein2-5 lhp1-6",
+    "glhp1ein3eil1lhp16" = "proLHP1::gLHP1-GFP /ein3-1 eil1-1 lhp1-6"
+  )) |>
+  mutate(Temp = recode(Temp,
+                       "22" = "21°C", "28" = "27°C"))
+
+d1a <- d1a |>
+  mutate(Genotype = dplyr::recode(Genotype,
+    "wt" = "Col-0",
+    "ein2" = "ein2-5",
+    "ein3" = "ein3-1 eil1-1",
+    "lhp1" = "lhp1-3",
+    "ein2lhp1" = "ein2-5 lhp1-3",
+   "ein3eil1lhp1" = "ein3-1 eil1-1 lhp1-3",
+   "lhp16" = "lhp1-6",
+    "ein2lhp16" = "ein2-5 lhp1-6",
+    "ein3eil1lhp16" = "ein3-1 eil1-1 lhp1-6",
+    "glhp1lhp16" = "proLHP1::gLHP1-GFP /lhp1-6",
+    "glhp1ein2lhp16" = "proLHP1::gLHP1-GFP /ein2-5 lhp1-6",
+    "glhp1ein3eil1lhp16" = "proLHP1::gLHP1-GFP /ein3-1 eil1-1 lhp1-6"
+  )) |>
+  mutate(Temp = recode(Temp,
+                       "22" = "21°C", "28" = "27°C"))
+
+# Plot
+g1 <- ggplot(summary_df, aes(x = Genotype, y = mean, fill = Temp)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.9), color = "black") +
+  geom_errorbar(aes(ymin = mean - 2*se, ymax = mean + 2*se),
+                position = position_dodge(width = 0.9),
+                width = 0.7) +
+  geom_jitter(data = d1a, aes(x = Genotype, y = Length, fill = Temp),
+              position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.9),
+              shape = 21, color = "black", size = 0.1, inherit.aes = FALSE) +
+  geom_text(aes(label = Letters),
+            vjust = -2,
+            position = position_dodge(width = 0.9),
+            size = 4) +
+  theme_minimal(base_size = 12) +
+  scale_fill_manual(values = c("21°C" = "skyblue", "27°C" = "tomato")) +
+  labs(y = "Hypocotyl length (mm)", x = "", fill = "Temperature") +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+g1
+
+```
+
+#RNA-seq
+
+```{r}
+
+# DEG threshold (padj < 0.05 and |log2FC| > 0.585)
+threshold <- 0.585
+
+# Filter for warm-induced DEGs in different phenotypes
+col_DEGs <- d2 |>
+  filter(abs(log2FoldChange) > threshold, padj < 0.05)
+ein2_DEGs <- d3 |>
+  filter(abs(log2FoldChange) > threshold, padj < 0.05)
+lhp1_DEGs <- d4 |>
+  filter(abs(log2FoldChange) > threshold, padj < 0.05)
+ein2lhp1_DEGs <- d5 |>
+  filter(abs(log2FoldChange) > threshold, padj < 0.05)
+
+# Extract EIN2-LHP1 DEGs not present in col_DEGs
+ein2lhp1_DEGs_2 <- ein2lhp1_DEGs |>
+  filter(!(X %in% col_DEGs$X)) |>
+  filter(!(X %in% ein2_DEGs$X)) |>
+  filter(!(X %in% lhp1_DEGs$X))
+
+```
+
+```{r}
+library(tidyverse)
+
+# DEG threshold (padj < 0.05 and |log2FC| > 0.585)
+threshold <- 0.585
+
+# Filter for warm-induced DEGs in different phenotypes
+col_up <- d2 |>
+  filter((log2FoldChange) > threshold, padj < 0.05)
+
+# Extract EIN2-LHP1 DEGs not present in col_DEGs
+ein2_up <- d3 |>
+  filter(X %in% col_up$X) |>
+  filter(padj < 0.05)
+
+lhp1_up <- d4 |>
+  filter(X %in% col_up$X) |>
+  filter(padj < 0.05)
+
+ ein2lhp1_up <- d5 |>
+  filter(X %in% col_up$X) |>
+  filter(padj < 0.05)
+
+s2b <- inner_join(ein2_up, lhp1_up, ein2lhp1_up, by = "X")
+
+# Extract log2FC from all genotypes
+get_log2fc <- function(genes, group_label) {
+  df <- data.frame(Gene = genes$X)
+  df$Col0 <- d2$log2FoldChange[match(df$Gene, d2$X)]
+  df$ein2 <- d3$log2FoldChange[match(df$Gene, d3$X)]
+  df$lhp1 <- d4$log2FoldChange[match(df$Gene, d4$X)]
+  df$ein2lhp1 <- d5$log2FoldChange[match(df$Gene, d5$X)]
+  df$Group <- group_label
+  return(df)
+}
+
+df_dep <- get_log2fc(col_up, "EIN2-LHP1-up")
+
+# Load required libraries
+library(tidyverse)
+library(pheatmap)
+
+# Combine log2FCs for dependent DEGs
+dep_genes <- df_dep$Gene
+heat_data <- df_dep %>%
+  column_to_rownames("Gene") %>%
+  dplyr::select(Col0, ein2, lhp1, ein2lhp1)
+
+# Scale each row (z-score normalization)
+heat_matrix <- t(scale(t(as.matrix(heat_data))))
+
+# Plot heatmap
+pheatmap(heat_matrix,
+         cluster_rows = TRUE,
+         cluster_cols = FALSE,
+         show_rownames = TRUE,
+         fontsize = 10,
+         color = colorRampPalette(c("blue", "white", "red"))(100),
+         breaks = seq(-4, 4, length.out = 100),
+         main = "Log2FC 27°C vs 21°C")
+```
+
+## Discussion and Reflection
+
+## References
