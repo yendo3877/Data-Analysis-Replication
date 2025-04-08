@@ -135,7 +135,7 @@ window.Quarto = {
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">1. Introduction</h2>
 <p>The paper “LHP1 and INO80 cooperate with ethylene signaling for warm ambient temperature response by activating specific bivalent genes” by Shao et al.&nbsp;2024 demonstrate the involement of ethylene signaling in ambient temperature response in plant using model of <em>Arabidopsis thaliana</em>. In brief, ethylene signaling key factors/ protein EIN2 and EIN3 collaborate with 2 proteins LHP1 and INO80 to alter chromatin bivalency of H3K4me3 and H3K27me3, resulting in transcriptional activation in response to warm temperature.</p>
-<p>In the paper, authors studied phenotype, m-RNA expression level, protein interaction and methylate histone level of different single mutant lines (<em>ein2-5</em>, <em>ein3-1eil1-1</em>, <em>lhp1</em>, <em>ino80</em>) and higher order (ex: <em>ein2-5lhp1-6</em>) compared with wildtype (Col-0) to determine relationship of ethylene signaling factors and other heat response factors. Techniques:</p>
+<p>In the paper, authors studied phenotype, m-RNA expression level, protein interaction and methylate histone level of different single mutant lines (<em>ein2-5</em>, <em>ein3-1eil1-1</em>, <em>lhp1</em>, <em>ino80</em>) and higher order (ex: <em>ein2-5lhp1-6</em>) compared with wildtype (Col-0) to determine relationship of ethylene signaling factors and other heat response factors. Main techniques includes: temperature response assay, pull-down assay, Y2H hybrid assay, RNA extraction, RNA sequencing, ChiP-sequencing.</p>
 <p>In my assignment, I replicated data below: 1. Phenotype measurement (presented in Figure 1B): descriptive statistical analysis, two-tailed ANOVA and posthoc Tukey HSD are performed to identify hypocotyl length characteristic of mutants plant and compare among experimental groups of plant. Data is visualized using bar chart. 2. RNA-seq data (using for figure S1G and S1H): statistical analysis, two-paired t-test are performed to identify and compare gene expression pattern among experimental groups of plant. Data is visualized using heatmap and violin plot.</p>
 <section id="visualization-of-data" class="level3">
 <h3 class="anchored" data-anchor-id="visualization-of-data">Visualization of data</h3>
@@ -254,7 +254,7 @@ $ padj           &lt;dbl&gt; 4.270284e-01, 3.945220e-01, NA, 3.186449e-01, 3.132
 <h2 class="anchored" data-anchor-id="data-analysis-and-visualization-replication">2. Data analysis and Visualization Replication</h2>
 <section id="phenotype-analysis" class="level3">
 <h3 class="anchored" data-anchor-id="phenotype-analysis">2.1. Phenotype analysis</h3>
-<p>First, I renamed variances in data set to match with published paper and converted genotype and temperature to factors for statistical analysis and ploting. I also grouped genotype and temperature to group.</p>
+<p>First, I renamed variances in dataset to match with published paper and converted genotype and temperature to factors for statistical analysis and ploting. I also grouped genotype and temperature to groups.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Rename</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>d1 <span class="ot">&lt;-</span> d1 <span class="sc">|&gt;</span></span>
@@ -339,9 +339,7 @@ proLHP1::gLHP1-GFP /ein3-1 eil1-1 lhp1-6.27°C
                                            39 </code></pre>
 </div>
 </div>
-<p>As data set contains 12 genotypes and 2 temperature treatment, after grouping, I got 24 groups of data that I will perform descriptive statistical analysis.</p>
-<section id="descriptive-statistical-analysis" class="level4">
-<h4 class="anchored" data-anchor-id="descriptive-statistical-analysis">Descriptive statistical analysis</h4>
+<p>As the dataset contains 12 genotypes and 2 temperature treatment, after grouping, I got 24 groups of data that I will perform descriptive statistical analysis.</p>
 <p>In the published paper, authors mentions about the difference between after and before temperature treatments of different genotype. Here, I conducted descriptive statistical analysis by caculating mean and se (standard error), and using box-plot for visualization.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>summary_d1 <span class="ot">&lt;-</span> d1 <span class="sc">|&gt;</span></span>
@@ -409,7 +407,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 </div>
 <p>Results: The first ANOVA revealed significant effects of genotype (F(11, 627) = 1068.1, p &lt; 2e-16), and temperature (F(1, 627) = 8485.0, p&lt; 2e-16) on hypocotyl length. These results indicate that both genetic background and growth temperature strongly influence hypocotyl elongation. The second ANOVA shows there is a highly significant effect of genotype-temperature combinations on hypocotyl length (ANOVA, F(23, 627) = 1046, p &lt; 2e-16), indicating that interaction between genetic background and temperature strongly influence growth.</p>
-<p>Then I peformed Tukey HSD test to see: “Which specific genotype-temperature groups are significantly different from each other?”</p>
+<p>Then I peformed Tukey HSD test to answer question: “Which specific genotype-temperature groups are significantly different from each other?”</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Tukey HSD and compact letter display</span></span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>tukey_result <span class="ot">&lt;-</span> <span class="fu">glht</span>(aov_result2, <span class="at">linfct =</span> <span class="fu">mcp</span>(<span class="at">Group =</span> <span class="st">"Tukey"</span>))</span>
@@ -442,7 +440,7 @@ Warning in RET$pfunction("adjusted", ...): Completion with error &gt; abseps</co
        24 character character </code></pre>
 </div>
 </div>
-<p>Tukey HSD post-hoc comparisons revealed that many genotype-temperature combinations differ significantly. For instance, lhp1-3, ein2-5 lhp1-3, and ein3-1 eil1-1 lhp1-3 mutants had significantly shorter hypocotyls than wild-type (wt) at 21°C (p &lt; 0.01). Most genotypes showed significantly longer hypocotyls at 27°C compared to 21°C, indicating strong temperature responsiveness. However, some mutants (e.g.&nbsp;ein2-5 lhp1-3) showed less elongation, suggesting impaired thermoresponsive growth.</p>
+<p>Tukey HSD comparisons revealed that many genotype-temperature combinations differ significantly. For instance, lhp1-3, ein2-5 lhp1-3, and ein3-1 eil1-1 lhp1-3 mutants had significantly shorter hypocotyls than wild-type (wt) at 21°C (p &lt; 0.01). Most genotypes showed significantly longer hypocotyls at 27°C compared to 21°C, indicating strong temperature responsiveness. However, some mutants (e.g.&nbsp;ein2-5 lhp1-3) showed less elongation, suggesting impaired thermoresponsive growth.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># merge letters to summary dataset</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>summary_d1 <span class="ot">&lt;-</span> summary_d1 <span class="sc">|&gt;</span></span>
@@ -506,9 +504,8 @@ Warning in RET$pfunction("adjusted", ...): Completion with error &gt; abseps</co
 </div>
 </div>
 </div>
-<p>Conclusion: Warm temperature (27°C) significantly promotes hypocotyl elongation in wild-type (Col-0) and several genotypes. However, mutants with disrupted ethylene signaling (ein2, ein3-1 eil1-1) or chromatin regulation (lhp1) show impaired thermoresponsive elongation, especially in combinations like ein2-5 lhp1-3 and ein3-1 eil1-1 lhp1-3.</p>
-<p>Introduction of the proLHP1::gLHP1-GFP transgene in these mutant backgrounds restores hypocotyl elongation, often to wild-type levels. This indicates that LHP1 is necessary and sufficient for thermomorphogenic growth, and that it can compensate for defects in ethylene signaling when overexpressed.</p>
-</section>
+<p>Conclusion: Warm temperature (27°C) significantly promotes hypocotyl elongation in wild-type (Col-0). However, mutants with disrupted ethylene signaling (ein2-5, ein3-1 eil1-1) or chromatin regulation (lhp1-3, lhp1-6) show impaired thermoresponsive elongation. Moreover, higher-order mutants exhibited almost no response to a warm ambient temperature (example: ein2-5 lhp1-3).</p>
+<p>Complementary lines were created to validate the additive genetic function of LHP1 with EIN2 and EIN3 in the warm ambient temperature ambient response (with proLHP1::gLHP1-GFP). The phenotypes of lhp1-6, ein2-5 lhp1-6, and ein3-1 eil1-1 lhp1-6 were restored by proLHP1::gLHP1-GFP to that of Col-0, ein2-5, or ein3-1 eil1-1, respectively suggesting that LHP1 functions with EIN2 and EIN3/EIL1 additively in response to a warm ambient temperature.</p>
 </section>
 <section id="rna-seq-analysis" class="level3">
 <h3 class="anchored" data-anchor-id="rna-seq-analysis">2.2. RNA-seq analysis</h3>
@@ -573,7 +570,7 @@ Warning in RET$pfunction("adjusted", ...): Completion with error &gt; abseps</co
 </div>
 </div>
 <p>From the heatmap, the expression levels were reported (using log2FC data). Compared to Col-0, those up-regulated genes mostly have lower expression in mutants (more blue cells compared to lot of red cells in Col-0).However, some of the genes still show higher expression in mutants.</p>
-<p>To firgure out all single mutants involve in some same pathway, I filtered out genes pool that lower expression in mutants when exposed to warm-temperature.</p>
+<p>To firgure out whether all single mutants involve in same pathways or not, I filtered out genes pool that lower expression in mutants compared to Col-0 when exposed to warm-temperature.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>heatmap_filtered1 <span class="ot">&lt;-</span> df_col_up <span class="sc">|&gt;</span></span>
 <span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(ein2 <span class="sc">&lt;</span> Col0)</span>
@@ -743,10 +740,10 @@ $ `lhp1-3`        &lt;dbl&gt; 0.06617553, -0.61579060, 1.43380077, 0.03088740, 0
 <li>RNA-seq: Heatmap generate from this assignment is somewhat different to orginal paper.</li>
 </ol>
 <ul>
-<li>log2FC (range -4 to 4) instead of (-4 to 8) in original paper. Using (-4 to 8) with my samples results in all blue color in heatmap, makes it harder to indentify lower expression gene. Therefore, I changed it to -4 to 8.</li>
+<li>Heatmap I generated and orginal paper have some differences in expression pattern, it maybe come from different data filter protocol and also map process. Overall, I get the results somehow reflect same trends as in the original paper.</li>
+<li>log2FC (range -4 to 4) instead of (-4 to 8) in original paper. Using (-4 to 8) with my samples results in all blue color in heatmap, makes it harder to indentify lower expression gene. Therefore, I changed it to -4 to 4.</li>
 <li>t-test and violin plot: While violin plot from orginal paper, authors used same letter c for ein2-5 and lhp1-3 groups, t-test results from my samples showed significant difference between ein2-5 and lhp1-3 group, even though the difference was smaller than other comparision. I still manually added letter c for ein2-5 and lhp1-3 groups in violin plot, but it doesn’t really reflect my t-test results. I hypothesized that authors used smaller threshold ( p-value = 0.01), but in legend, they said they used p-value = 0.05 instead. However, this difference doesn’t affect the conclusion that there is significant difference in Col-0 compared to other mutants.</li>
 </ul>
-<p>RNA-seq analysis can be widely used to study gene expression profiling, differential gene expression, and pathway or functional enrichment analysis. In the original paper, RNA-seq data was also applied to many other types of analyses. Here, due to my current limitations, I only reported a small portion of them. However, I now have a better understanding of how to handle the dataset and use R to compare expression patterns among experimental groups. This will be a starting point for my future RNA-seq analyses.</p>
 </section>
 <section id="references" class="level2">
 <h2 class="anchored" data-anchor-id="references">References</h2>
