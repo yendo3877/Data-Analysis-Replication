@@ -5,15 +5,15 @@ format: html
 editor: visual
 ---
 
-## Introduction
+## 1. Introduction
 
 The paper "LHP1 and INO80 cooperate with ethylene signaling for warm ambient temperature response by activating specific bivalent genes" by Shao et al. 2024 demonstrate the involement of ethylene signaling in ambient temperature response in plant using model of *Arabidopsis thaliana*. In brief, ethylene signaling key factors/ protein EIN2 and EIN3 collaborate with 2 proteins LHP1 and INO80 to alter chromatin bivalency of H3K4me3 and H3K27me3, resulting in transcriptional activation in response to warm temperature.
 
 In the paper, authors studied phenotype, m-RNA expression level, protein interaction and methylate histone level of different single mutant lines (*ein2-5*, *ein3-1eil1-1*, *lhp1*, *ino80*) and higher order (ex: *ein2-5lhp1-6*) compared with wildtype (Col-0) to determine relationship of ethylene signaling factors and other heat response factors. Techniques:
 
-In my assignment, I replicated data below: 1. Phenotype measurement, presented in Figure 1 of orginal paper 2. RNA-seq data
+In my assignment, I replicated data below: 1. Phenotype measurement (presented in Figure 1B): descriptive statistical analysis, two-tailed ANOVA and posthoc Tukey HSD are performed to identify hypocotyl length characteristic of mutants plant and compare among experimental groups of plant. Data is visualized using bar chart. 2. RNA-seq data (using for figure S1G and S1H): statistical analysis, two-paired t-test are performed to identify and compare gene expression pattern among experimental groups of plant. Data is visualized using heatmap and violin plot.
 
-## Visualization of data
+### Visualization of data
 
 ```{r}
 #Loading all packages
@@ -21,37 +21,75 @@ library(tidyverse)
 library(multcomp)
 library(multcompView)
 library(ggpubr)
+library(pheatmap)
+```
 
-#Loading the fisrt data set: temperature response phenotype of mutants
+```{r}
+# Loading the fisrt data set: temperature response phenotype of mutants
 f1 <- "https://raw.githubusercontent.com/yendo3877/data-analysis-replication/refs/heads/main/data/2228_hypo3_lhp1.csv"
 d1 <- read.csv(f1, header = TRUE)
-head(d1)
+glimpse(d1)
+```
 
+First data set includes measurement data of hypocotyl (in mm) of 11 type of mutants and wildtype (Col-0) in 2 temperature treatment: 22 and 28°C. By observing change in hypocotyl length, author can demonstrate thermosensibility of mutants compared to wildtype.
+
+```{r}
 #Loading the second data set: RNA-seq of different mutants 
 f2 <- "https://raw.githubusercontent.com/yendo3877/data-analysis-replication/refs/heads/main/data/GSE256453_diff_wt_27vs21.csv"
 d2 <- read.csv(f2, header = TRUE)
-head(d2)
+glimpse(d2)
 
 f3 <- "https://raw.githubusercontent.com/yendo3877/data-analysis-replication/refs/heads/main/data/GSE256453_diff_ein2_27vs21.csv"
 d3 <- read.csv(f3, header = TRUE)
-head(d3)
 
-f4 <- "https://raw.githubusercontent.com/yendo3877/data-analysis-replication/refs/heads/main/data/GSE256453_diff_lhp1_27vs21.csv"
+f4 <- "https://raw.githubusercontent.com/yendo3877/data-analysis-replication/refs/heads/main/data/GSE256453_diff_ein3eil1_27vs21.csv"
 d4 <- read.csv(f4, header = TRUE)
-head(d4)
 
-f5 <- "https://raw.githubusercontent.com/yendo3877/data-analysis-replication/refs/heads/main/data/GSE256453_diff_ein2lhp1_27vs21.csv"
+f5 <- "https://raw.githubusercontent.com/yendo3877/data-analysis-replication/refs/heads/main/data/GSE256453_diff_lhp1_27vs21.csv"
 d5 <- read.csv(f5, header = TRUE)
-head(d5)
+
 ```
 
-## Data analysis and Visualization Replication
+Second data set comprises RNA-seq differential gene expression results from Arabidopsis thaliana under warm-ambient temperature conditions (27°C vs. 21°C) across four genotypes: Col-0 (wild-type), ein2-5 (ethylene signaling mutant), ein3-1 eil1-1, lhp1-3 (chromatin silencing mutant). The dataset includes: Gene identifiers (X), $log_2$ fold change (27°C vs. 21°C), Standard errors, p-values and adjusted p-values.
 
-### Phenotype
+### Original images
 
 ```{r}
+#| out-width: 300px
+knitr::include_graphics("images/figure-01-b.png")
+knitr::include_graphics("images/figure-s1-g.png")
+knitr::include_graphics("images/figure-s1-h.png")
+
+```
+
+## 2. Data analysis and Visualization Replication
+
+### 2.1. Phenotype analysis
+
+First, I renamed variances in data set to match with published paper and converted genotype and temperature to factors for statistical analysis and ploting. I also grouped genotype and temperature to group.
+
+```{r}
+#Rename
+d1 <- d1 |>
+  mutate(Genotype = dplyr::recode(Genotype,
+    "wt" = "Col-0",
+    "ein2" = "ein2-5",
+    "ein3" = "ein3-1 eil1-1",
+    "lhp1" = "lhp1-3",
+    "ein2lhp1" = "ein2-5 lhp1-3",
+   "ein3eil1lhp1" = "ein3-1 eil1-1 lhp1-3",
+   "lhp16" = "lhp1-6",
+    "ein2lhp16" = "ein2-5 lhp1-6",
+    "ein3eil1lhp16" = "ein3-1 eil1-1 lhp1-6",
+    "glhp1lhp16" = "proLHP1::gLHP1-GFP /lhp1-6",
+    "glhp1ein2lhp16" = "proLHP1::gLHP1-GFP /ein2-5 lhp1-6",
+    "glhp1ein3eil1lhp16" = "proLHP1::gLHP1-GFP /ein3-1 eil1-1 lhp1-6"
+  )) |>
+  mutate(Temp = recode(Temp,
+                       "22" = "21°C", "28" = "27°C"))
+
 # Convert Genotype and Temp to factors
-d1a <- d1 |>
+d1 <- d1 |>
   rename(Length = hypocotyl_length) |>
   mutate(
     Genotype = factor(Genotype, levels = unique(Genotype)),
@@ -59,80 +97,81 @@ d1a <- d1 |>
     Group = interaction(Genotype, Temp)
   )
 
-d1a$Group <- as.factor(d1a$Group)
+d1$Group <- as.factor(d1$Group)
 # Check for any single-observation groups
-table(d1a$Group)
-
-# ANOVA
-aov_result <- aov(Length ~ Group, data = d1a)
-summary(aov_result)
-```
-Results 
-Then I peformed Tukey HSD test a
-
-```{r}
-# Tukey HSD and compact letter display
-tukey_result <- glht(aov_result, linfct = mcp(Group = "Tukey"))
-letters_df <- cld(tukey_result)$mcletters$Letters
-print(letters_df)
+table(d1$Group)
 ```
 
+As data set contains 12 genotypes and 2 temperature treatment, after grouping, I got 24 groups of data that I will perform descriptive statistical analysis.
+
+#### Descriptive statistical analysis
+
+In the published paper, authors mentions about the difference between after and before temperature treatments of different genotype. Here, I conducted descriptive statistical analysis by caculating mean and se (standard error), and using box-plot for visualization.
 
 ```{r}
-# Summary statistics + merge letters
-summary_df <- d1a %>%
-  group_by(Genotype, Temp, Group) %>%
+
+summary_d1 <- d1 |>
+  group_by(Genotype, Temp, Group) |>
   summarise(
     mean = mean(Length),
     se = sd(Length) / sqrt(n()),
     .groups = "drop"
-  ) %>%
-  mutate(Letters = letters_df[as.character(Group)])
+  ) 
 
-# Recode the variances
-summary_df <- summary_df |>
-  mutate(Genotype = dplyr::recode(Genotype,
-    "wt" = "Col-0",
-    "ein2" = "ein2-5",
-    "ein3" = "ein3-1 eil1-1",
-    "lhp1" = "lhp1-3",
-    "ein2lhp1" = "ein2-5 lhp1-3",
-   "ein3eil1lhp1" = "ein3-1 eil1-1 lhp1-3",
-   "lhp16" = "lhp1-6",
-    "ein2lhp16" = "ein2-5 lhp1-6",
-    "ein3eil1lhp16" = "ein3-1 eil1-1 lhp1-6",
-    "glhp1lhp16" = "proLHP1::gLHP1-GFP /lhp1-6",
-    "glhp1ein2lhp16" = "proLHP1::gLHP1-GFP /ein2-5 lhp1-6",
-    "glhp1ein3eil1lhp16" = "proLHP1::gLHP1-GFP /ein3-1 eil1-1 lhp1-6"
-  )) |>
-  mutate(Temp = recode(Temp,
-                       "22" = "21°C", "28" = "27°C"))
+summary(summary_d1)
 
-d1a <- d1a |>
-  mutate(Genotype = dplyr::recode(Genotype,
-    "wt" = "Col-0",
-    "ein2" = "ein2-5",
-    "ein3" = "ein3-1 eil1-1",
-    "lhp1" = "lhp1-3",
-    "ein2lhp1" = "ein2-5 lhp1-3",
-   "ein3eil1lhp1" = "ein3-1 eil1-1 lhp1-3",
-   "lhp16" = "lhp1-6",
-    "ein2lhp16" = "ein2-5 lhp1-6",
-    "ein3eil1lhp16" = "ein3-1 eil1-1 lhp1-6",
-    "glhp1lhp16" = "proLHP1::gLHP1-GFP /lhp1-6",
-    "glhp1ein2lhp16" = "proLHP1::gLHP1-GFP /ein2-5 lhp1-6",
-    "glhp1ein3eil1lhp16" = "proLHP1::gLHP1-GFP /ein3-1 eil1-1 lhp1-6"
-  )) |>
-  mutate(Temp = recode(Temp,
-                       "22" = "21°C", "28" = "27°C"))
+d1$Group <- factor(d1$Group, levels = sort(unique(d1$Group)))
+boxplot(Length ~ Group, data = d1, xlab = " ", ylab = "Hypocotyl length (mm)", cex.axis = 0.5,
+        cex.lab = 1,    # axis titles
+        cex.main = 0.5,   # main title
+        las = 2)         # rotate x-axis labels if needed
 
+```
+
+From summary_d1, group ranges from 2.479351 (lhp1 21°C) to 7.771302 (Col-0 27°C). The high temperature affect some of the groups of genotype (ex: Col-0), but some of them are not likely affected (ex: ein2-5 lhp1). To see whether these groups are affected or not, I performed two-tailed ANOVA, following by Tukey HSD test, to determine significance of data.
+
+In two-tailed ANOVA, I want to see effect of (1) individual genotype or temperature on hypocotyl length (mm) and (2) groups of genotype and temperature on hypocotyl length (mm).
+
+```{r}
+# ANOVA
+aov_result <- aov(Length ~ Genotype + Temp, data = d1)
+summary(aov_result)
+
+aov_result2 <- aov(Length ~ Group, data = d1)
+summary(aov_result2)
+```
+
+Results: The first ANOVA revealed significant effects of genotype (F(11, 627) = 1068.1, p < 2e-16), and temperature (F(1, 627) = 8485.0, p< 2e-16) on hypocotyl length. These results indicate that both genetic background and growth temperature strongly influence hypocotyl elongation. The second ANOVA shows there is a highly significant effect of genotype-temperature combinations on hypocotyl length (ANOVA, F(23, 627) = 1046, p < 2e-16), indicating that interaction between genetic background and temperature strongly influence growth.
+
+Then I peformed Tukey HSD test to see: "Which specific genotype-temperature groups are significantly different from each other?"
+
+```{r}
+# Tukey HSD and compact letter display
+tukey_result <- glht(aov_result2, linfct = mcp(Group = "Tukey"))
+letters_d1 <- cld(tukey_result)$mcletters$Letters
+summary(letters_d1)
+```
+
+Tukey HSD post-hoc comparisons revealed that many genotype-temperature combinations differ significantly. For instance, lhp1-3, ein2-5 lhp1-3, and ein3-1 eil1-1 lhp1-3 mutants had significantly shorter hypocotyls than wild-type (wt) at 21°C (p < 0.01). Most genotypes showed significantly longer hypocotyls at 27°C compared to 21°C, indicating strong temperature responsiveness. However, some mutants (e.g. ein2-5 lhp1-3) showed less elongation, suggesting impaired thermoresponsive growth.
+
+```{r}
+# merge letters to summary dataset
+summary_d1 <- summary_d1 |>
+  mutate(Letters = letters_d1[as.character(Group)])
+
+summary(summary_d1)
+```
+
+Finally, I used bar plot using ggplot to visualized the data and results from Tukey HSD test to draw conclusion.
+
+```{r}
 # Plot
-g1 <- ggplot(summary_df, aes(x = Genotype, y = mean, fill = Temp)) +
+g1 <- ggplot(summary_d1, aes(x = Genotype, y = mean, fill = Temp)) +
   geom_bar(stat = "identity", position = position_dodge(width = 0.9), color = "black") +
   geom_errorbar(aes(ymin = mean - 2*se, ymax = mean + 2*se),
                 position = position_dodge(width = 0.9),
                 width = 0.7) +
-  geom_jitter(data = d1a, aes(x = Genotype, y = Length, fill = Temp),
+  geom_jitter(data = d1, aes(x = Genotype, y = Length, fill = Temp),
               position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.9),
               shape = 21, color = "black", size = 0.1, inherit.aes = FALSE) +
   geom_text(aes(label = Letters),
@@ -145,95 +184,206 @@ g1 <- ggplot(summary_df, aes(x = Genotype, y = mean, fill = Temp)) +
   theme(axis.text.x = element_text(angle = 30, hjust = 1))
 g1
 
+#original figure
+#| out-width: 120px
+knitr::include_graphics("images/figure-01-b.png")
 ```
 
-#RNA-seq
+Conclusion: Warm temperature (27°C) significantly promotes hypocotyl elongation in wild-type (Col-0) and several genotypes. However, mutants with disrupted ethylene signaling (ein2, ein3-1 eil1-1) or chromatin regulation (lhp1) show impaired thermoresponsive elongation, especially in combinations like ein2-5 lhp1-3 and ein3-1 eil1-1 lhp1-3.
+
+Introduction of the proLHP1::gLHP1-GFP transgene in these mutant backgrounds restores hypocotyl elongation, often to wild-type levels. This indicates that LHP1 is necessary and sufficient for thermomorphogenic growth, and that it can compensate for defects in ethylene signaling when overexpressed.
+
+### 2.2. RNA-seq analysis
+
+In RNA-seq analysis, authors compared the transcriptomes of Col-0, ein2-5, ein3-1 eil1-1, and lhp1-3 with or without 4 h of 27C treatment (Figures S1G and S1H).
+
+First, I extracted warm-induced up-regulate genes in Col-0 from dataset d2 and compared log2FC with all the mutants. To do so, I filtered genes using threshold as mentioned in paper method, then get log2FC of those gene from all the single mutants by create new function get_log2fc.
 
 ```{r}
-
-# DEG threshold (padj < 0.05 and |log2FC| > 0.585)
+# up regulated genes threshold (padj < 0.05 and |log2FC| > 0.585)
 threshold <- 0.585
 
-# Filter for warm-induced DEGs in different phenotypes
-col_DEGs <- d2 |>
-  filter(abs(log2FoldChange) > threshold, padj < 0.05)
-ein2_DEGs <- d3 |>
-  filter(abs(log2FoldChange) > threshold, padj < 0.05)
-lhp1_DEGs <- d4 |>
-  filter(abs(log2FoldChange) > threshold, padj < 0.05)
-ein2lhp1_DEGs <- d5 |>
-  filter(abs(log2FoldChange) > threshold, padj < 0.05)
-
-# Extract EIN2-LHP1 DEGs not present in col_DEGs
-ein2lhp1_DEGs_2 <- ein2lhp1_DEGs |>
-  filter(!(X %in% col_DEGs$X)) |>
-  filter(!(X %in% ein2_DEGs$X)) |>
-  filter(!(X %in% lhp1_DEGs$X))
-
-```
-
-```{r}
-library(tidyverse)
-
-# DEG threshold (padj < 0.05 and |log2FC| > 0.585)
-threshold <- 0.585
-
-# Filter for warm-induced DEGs in different phenotypes
+# Filter for warm-induced up regulated gene in wildtype - Col-0
 col_up <- d2 |>
   filter((log2FoldChange) > threshold, padj < 0.05)
 
-# Extract EIN2-LHP1 DEGs not present in col_DEGs
-ein2_up <- d3 |>
-  filter(X %in% col_up$X) |>
-  filter(padj < 0.05)
-
-lhp1_up <- d4 |>
-  filter(X %in% col_up$X) |>
-  filter(padj < 0.05)
-
- ein2lhp1_up <- d5 |>
-  filter(X %in% col_up$X) |>
-  filter(padj < 0.05)
-
-s2b <- inner_join(ein2_up, lhp1_up, ein2lhp1_up, by = "X")
 
 # Extract log2FC from all genotypes
 get_log2fc <- function(genes, group_label) {
   df <- data.frame(Gene = genes$X)
   df$Col0 <- d2$log2FoldChange[match(df$Gene, d2$X)]
   df$ein2 <- d3$log2FoldChange[match(df$Gene, d3$X)]
-  df$lhp1 <- d4$log2FoldChange[match(df$Gene, d4$X)]
-  df$ein2lhp1 <- d5$log2FoldChange[match(df$Gene, d5$X)]
+  df$ein3 <- d4$log2FoldChange[match(df$Gene, d4$X)]
+  df$lhp1 <- d5$log2FoldChange[match(df$Gene, d5$X)]
   df$Group <- group_label
   return(df)
 }
 
-df_dep <- get_log2fc(col_up, "EIN2-LHP1-up")
+df_col_up <- get_log2fc(col_up, "col-up")
+```
 
-# Load required libraries
-library(tidyverse)
-library(pheatmap)
+From 25656 genes of d2, I filtered 902 genes that are warm-induced up regulated. I can observed the log2FoldChange pattern of these 902 genes in Col-0 and all single mutants using clustered heatmap.
 
-# Combine log2FCs for dependent DEGs
-dep_genes <- df_dep$Gene
-heat_data <- df_dep %>%
-  column_to_rownames("Gene") %>%
-  dplyr::select(Col0, ein2, lhp1, ein2lhp1)
+```{r}
+df_col_up$Group <- NULL
+# Drop the gene column and make sure all others are numeric
+mat <- df_col_up |>
+  dplyr::select(-Gene) |>
+  mutate(across(everything(), as.numeric)) |>
+  as.matrix()
+
+rownames(mat) <- df_col_up$gene
 
 # Scale each row (z-score normalization)
-heat_matrix <- t(scale(t(as.matrix(heat_data))))
+col_up_matrix <- t(scale(t(as.matrix(mat))))
 
 # Plot heatmap
-pheatmap(heat_matrix,
+pheatmap(col_up_matrix,
          cluster_rows = TRUE,
-         cluster_cols = FALSE,
+         cluster_cols = TRUE,
          show_rownames = TRUE,
          fontsize = 10,
+         fontsize_row = 0,
+         fontsize_col = 13,
+         cellwidth = 50,   # width of each column (optional)
+  cellheight = 0.2,   # height of each row — increase this to stretch vertically
+         angle_col = 315,
          color = colorRampPalette(c("blue", "white", "red"))(100),
          breaks = seq(-4, 4, length.out = 100),
          main = "Log2FC 27°C vs 21°C")
 ```
 
+From the heatmap, the expression levels were reported (using log2FC data). Compared to Col-0, those up-regulated genes mostly have lower expression in mutants (more blue cells compared to lot of red cells in Col-0).However, some of the genes still show higher expression in mutants.
+
+To firgure out all single mutants involve in some same pathway, I filtered out genes pool that lower expression in mutants when exposed to warm-temperature.
+
+```{r}
+heatmap_filtered1 <- df_col_up |>
+  filter(ein2 < Col0)
+
+heatmap_filtered2 <- heatmap_filtered1 |>
+  filter(ein3 < Col0)
+
+heatmap_filtered <- heatmap_filtered2 |>
+  filter(lhp1 < Col0)
+colnames(heatmap_filtered)
+colnames(heatmap_filtered) <- c("Gene", "Col-0", "ein2-5", "ein3-1 eil1-1", "lhp1-3")
+heatmap_filtered$Group <- NULL
+
+glimpse((heatmap_filtered))
+# Drop the gene column and make sure all others are numeric
+mat2 <- heatmap_filtered |>
+  dplyr::select(-Gene) |>
+  mutate(across(everything(), as.numeric)) |>
+  as.matrix()
+
+rownames(mat2) <- heatmap_filtered$gene
+
+# Scale each row (z-score normalization)
+heat_matrix <- t(scale(t(as.matrix(mat2))))
+
+```
+
+In total of 902 genes up-regulated in Col-0, there are 610 genes that are lower expression in all 3 mutants (67.63%). Then, I can visualized these expression level of 610 genes using heatmap.
+
+```{r}
+
+pheatmap(heat_matrix,
+         cluster_rows = TRUE,
+         cluster_cols = TRUE,
+         show_rownames = TRUE,
+         fontsize = 8,
+         fontsize_row = 0,
+         fontsize_col = 12,
+         cellwidth = 50,   # width of each column (optional)
+  cellheight = 0.35,   # height of each row — increase this to stretch vertically
+         angle_col = 315,
+         color = colorRampPalette(c("blue", "white", "red"))(100),
+         breaks = seq(-4, 4, length.out = 100),
+         main = "Log2FC 27°C vs 21°C")
+
+#original figure
+#| out-width: 300px
+knitr::include_graphics("images/figure-s1-g.png")
+```
+
+The heatmap shows 610 genes have lower expression in all 3 types of mutants compared to Col-0.
+
+Finally, I checked for significant difference in gene pool contain 902 genes that up-regulated in Col-0, between Col-0 and other mutants using two-paired t-test and visualizing through violin plot.
+
+```{r}
+
+# Pivot to long format (gene, genotype, log2FC)
+df_long <- df_col_up |>
+  pivot_longer(
+    cols = -Gene,
+    names_to = "genotype",
+    values_to = "log2FC"
+  )
+
+df_long$genotype <- factor(df_long$genotype, levels = c("Col0", "ein2", "ein3", "lhp1"))
+
+# Statistical test
+stat.test <- compare_means(
+  log2FC ~ genotype,
+  data = df_long,
+  method = "t.test"
+)
+print(stat.test)  # Check for significance
+```
+
+From the t-test results, wild-type (Col-0) is significantly different from all mutants, suggesting that warm-ambient-temperature-induced transcriptional activation in Col-0 was compromised in the ein2-5, ein3-1 eil1-1, and lhp1-3 mutants.
+
+The only weakly significant comparison is ein2 vs lhp1 (adjusted p = 0.036).
+
+```{r}
+
+# Add significance letters manually (based on p-values from above)
+letters_df <- data.frame(
+  genotype = c("Col0", "ein2", "ein3", "lhp1"),
+  label = c("a", "c", "b", "c")
+)
+
+# Plot violin + boxplot
+p <- ggplot(df_long, aes(x = genotype, y = log2FC, fill = genotype)) +
+  geom_violin(trim = FALSE, alpha = 0.8) +
+  geom_boxplot(width = 0.1, outlier.shape = NA, fill = "white") +
+  geom_jitter(width = 0.01, size = 0.01, alpha = 0.5) +
+  scale_fill_manual(values = c("skyblue", "lightpink", "lightgreen", "gold")) +
+  theme_minimal(base_size = 14) +
+  ylab("Log2FC 27°C vs 21°C") +
+  xlab("") +
+  ggtitle("Warm-induced upregulated genes in Col-0") +
+  theme(legend.position = "none") + 
+  geom_text(
+  data = letters_df,
+  aes(x = genotype, y = max(df_long$log2FC, na.rm = TRUE) + 0.5, label = label),
+  inherit.aes = FALSE,
+  size = 5
+)
+p
+
+#original paper
+#| out-width: 300px
+knitr::include_graphics("images/figure-s1-h.png")
+```
+
+Violin plot shows that the expression reduction was significant in all three mutants compared to Col-0 like in original paper.
+
 ## Discussion and Reflection
 
+For this data analysis replication, 2 set of data (phenotype and RNA-seq) were replicated. In which, phenotype data was fully replicated and RNA-seq was partially replicated. 
+1. Phenotype:
+ANOVA and Turkey HD test was successfully performed. There is one difference in representing letters, but the significances were replicated are the same.
+
+2. RNA-seq:
+Heatmap generate from this assignment is somewhat different to orginal paper.
++ log2FC (range -4 to 4) instead of (-4 to 8) in original paper. 
+Using (-4 to 8) with my samples results in all blue color in heatmap, makes it harder to indentify lower expression gene. Therefore, I changed it to -4 to 8.
++ t-test and violin plot: While violin plot from orginal paper, authors used same letter c for ein2-5 and lhp1-3 groups, t-test results from my samples showed significant difference between ein2-5 and lhp1-3 group, even though the difference was smaller than other comparision. I still manually added letter c for ein2-5 and lhp1-3 groups in violin plot, but it doesn't really reflect my t-test results. I hypothesized that authors used smaller threshold ( p-value = 0.01), but in legend, they said they used p-value = 0.05 instead. However, this difference doesn't affect the conclusion that there is significant difference in Col-0 compared to other mutants.
+
+RNA-seq analysis can be widely used to study gene expression profiling, differential gene expression, and pathway or functional enrichment analysis. In the original paper, RNA-seq data was also applied to many other types of analyses. Here, due to my current limitations, I only reported a small portion of them. However, I now have a better understanding of how to handle the dataset and use R to compare expression patterns among experimental groups. This will be a starting point for my future RNA-seq analyses.
+
 ## References
+
+Shao, Z., Bai, Y., Huq, E., & Qiao, H. (2024). LHP1 and INO80 cooperate with ethylene signaling for warm ambient temperature response by activating specific bivalent genes. Cell Reports, 43(9).
