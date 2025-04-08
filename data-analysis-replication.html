@@ -137,6 +137,7 @@ window.Quarto = {
 <p>The paper “LHP1 and INO80 cooperate with ethylene signaling for warm ambient temperature response by activating specific bivalent genes” by Shao et al.&nbsp;2024 demonstrate the involement of ethylene signaling in ambient temperature response in plant using model of <em>Arabidopsis thaliana</em>. In brief, ethylene signaling key factors/ protein EIN2 and EIN3 collaborate with 2 proteins LHP1 and INO80 to alter chromatin bivalency of H3K4me3 and H3K27me3, resulting in transcriptional activation in response to warm temperature.</p>
 <p>In the paper, authors studied phenotype, m-RNA expression level, protein interaction and methylate histone level of different single mutant lines (<em>ein2-5</em>, <em>ein3-1eil1-1</em>, <em>lhp1</em>, <em>ino80</em>) and higher order (ex: <em>ein2-5lhp1-6</em>) compared with wildtype (Col-0) to determine relationship of ethylene signaling factors and other heat response factors. Main techniques includes: temperature response assay, pull-down assay, Y2H hybrid assay, RNA extraction, RNA sequencing, ChiP-sequencing.</p>
 <p>In my assignment, I replicated data below: 1. Phenotype measurement (presented in Figure 1B): descriptive statistical analysis, two-tailed ANOVA and posthoc Tukey HSD are performed to identify hypocotyl length characteristic of mutants plant and compare among experimental groups of plant. Data is visualized using bar chart. 2. RNA-seq data (using for figure S1G and S1H): statistical analysis, two-paired t-test are performed to identify and compare gene expression pattern among experimental groups of plant. Data is visualized using heatmap and violin plot.</p>
+<p>Notes: Original paper doesn’t include any descriptive data for phenotype. However, I still performed descriptive statistical analysis for hypocotyl length measurement and use them for comparision.</p>
 <section id="visualization-of-data" class="level3">
 <h3 class="anchored" data-anchor-id="visualization-of-data">Visualization of data</h3>
 <div class="cell">
@@ -341,6 +342,9 @@ proLHP1::gLHP1-GFP /ein3-1 eil1-1 lhp1-6.27°C
 </div>
 <p>As the dataset contains 12 genotypes and 2 temperature treatment, after grouping, I got 24 groups of data that I will perform descriptive statistical analysis.</p>
 <p>In the published paper, authors mentions about the difference between after and before temperature treatments of different genotype. Here, I conducted descriptive statistical analysis by caculating mean and se (standard error), and using box-plot for visualization.</p>
+</section>
+<section id="descriptive-statistical-analysis" class="level3">
+<h3 class="anchored" data-anchor-id="descriptive-statistical-analysis">Descriptive statistical analysis</h3>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>summary_d1 <span class="ot">&lt;-</span> d1 <span class="sc">|&gt;</span></span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Genotype, Temp, Group) <span class="sc">|&gt;</span></span>
@@ -350,24 +354,22 @@ proLHP1::gLHP1-GFP /ein3-1 eil1-1 lhp1-6.27°C
 <span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
 <span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  ) </span>
 <span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(summary_d1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(summary_d1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>                 Genotype    Temp                          Group   
- Col-0               : 2   21°C:12   Col-0.21°C               : 1  
- ein2-5              : 2   27°C:12   ein2-5.21°C              : 1  
- ein3-1 eil1-1       : 2             ein3-1 eil1-1.21°C       : 1  
- lhp1-3              : 2             lhp1-3.21°C              : 1  
- ein2-5 lhp1-3       : 2             ein2-5 lhp1-3.21°C       : 1  
- ein3-1 eil1-1 lhp1-3: 2             ein3-1 eil1-1 lhp1-3.21°C: 1  
- (Other)             :12             (Other)                  :18  
-      mean             se         
- Min.   :2.479   Min.   :0.02408  
- 1st Qu.:2.685   1st Qu.:0.03572  
- Median :3.588   Median :0.05291  
- Mean   :4.073   Mean   :0.05286  
- 3rd Qu.:5.176   3rd Qu.:0.06237  
- Max.   :7.771   Max.   :0.12218  
-                                  </code></pre>
+<pre><code># A tibble: 24 × 5
+   Genotype      Temp  Group               mean     se
+   &lt;fct&gt;         &lt;fct&gt; &lt;fct&gt;              &lt;dbl&gt;  &lt;dbl&gt;
+ 1 Col-0         21°C  Col-0.21°C          3.72 0.0455
+ 2 Col-0         27°C  Col-0.27°C          7.77 0.122 
+ 3 ein2-5        21°C  ein2-5.21°C         3.55 0.0504
+ 4 ein2-5        27°C  ein2-5.27°C         6.18 0.0940
+ 5 ein3-1 eil1-1 21°C  ein3-1 eil1-1.21°C  3.58 0.0652
+ 6 ein3-1 eil1-1 27°C  ein3-1 eil1-1.27°C  6.20 0.0692
+ 7 lhp1-3        21°C  lhp1-3.21°C         2.48 0.0303
+ 8 lhp1-3        27°C  lhp1-3.27°C         4.71 0.0576
+ 9 ein2-5 lhp1-3 21°C  ein2-5 lhp1-3.21°C  2.58 0.0586
+10 ein2-5 lhp1-3 27°C  ein2-5 lhp1-3.27°C  2.91 0.0621
+# ℹ 14 more rows</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>d1<span class="sc">$</span>Group <span class="ot">&lt;-</span> <span class="fu">factor</span>(d1<span class="sc">$</span>Group, <span class="at">levels =</span> <span class="fu">sort</span>(<span class="fu">unique</span>(d1<span class="sc">$</span>Group)))</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">boxplot</span>(Length <span class="sc">~</span> Group, <span class="at">data =</span> d1, <span class="at">xlab =</span> <span class="st">" "</span>, <span class="at">ylab =</span> <span class="st">"Hypocotyl length (mm)"</span>, <span class="at">cex.axis =</span> <span class="fl">0.5</span>,</span>
@@ -382,7 +384,8 @@ proLHP1::gLHP1-GFP /ein3-1 eil1-1 lhp1-6.27°C
 </div>
 </div>
 </div>
-<p>From summary_d1, group ranges from 2.479351 (lhp1 21°C) to 7.771302 (Col-0 27°C). The high temperature affect some of the groups of genotype (ex: Col-0), but some of them are not likely affected (ex: ein2-5 lhp1). To see whether these groups are affected or not, I performed two-tailed ANOVA, following by Tukey HSD test, to determine significance of data.</p>
+<p>At 27°C, Col-0 hypocotyls elongate from 3.72 mm to 7.77 mm. Mutants like ein2-5 (3.55 → 6.18 mm) and lhp1-3 (2.48 → 4.71 mm) show reduced elongation. Double/triple mutants such as ein2-5 lhp1-3 (2.58 → 2.91 mm) and ein3-1 eil1-1 lhp1-6 (2.51 → 2.72 mm) show minimal response. In contrast, proLHP1::gLHP1-GFP / lhp1-6 restores elongation (3.68 → 7.58 mm), demonstrating that LHP1 is sufficient to rescue thermomorphogenesis.</p>
+<p>To see whether genotype or temperature significantly affect hypocotyl length, I performed two-tailed ANOVA, following by Tukey HSD test, to determine significance of data.</p>
 <p>In two-tailed ANOVA, I want to see effect of (1) individual genotype or temperature on hypocotyl length (mm) and (2) groups of genotype and temperature on hypocotyl length (mm).</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ANOVA</span></span>
@@ -414,6 +417,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>letters_d1 <span class="ot">&lt;-</span> <span class="fu">cld</span>(tukey_result)<span class="sc">$</span>mcletters<span class="sc">$</span>Letters</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning in RET$pfunction("adjusted", ...): Completion with error &gt; abseps
+Warning in RET$pfunction("adjusted", ...): Completion with error &gt; abseps
 Warning in RET$pfunction("adjusted", ...): Completion with error &gt; abseps
 Warning in RET$pfunction("adjusted", ...): Completion with error &gt; abseps
 Warning in RET$pfunction("adjusted", ...): Completion with error &gt; abseps

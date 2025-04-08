@@ -13,6 +13,8 @@ In the paper, authors studied phenotype, m-RNA expression level, protein interac
 
 In my assignment, I replicated data below: 1. Phenotype measurement (presented in Figure 1B): descriptive statistical analysis, two-tailed ANOVA and posthoc Tukey HSD are performed to identify hypocotyl length characteristic of mutants plant and compare among experimental groups of plant. Data is visualized using bar chart. 2. RNA-seq data (using for figure S1G and S1H): statistical analysis, two-paired t-test are performed to identify and compare gene expression pattern among experimental groups of plant. Data is visualized using heatmap and violin plot.
 
+Notes: Original paper doesn't include any descriptive data for phenotype. However, I still performed descriptive statistical analysis for hypocotyl length measurement and use them for comparision.
+
 ### Visualization of data
 
 ```{r}
@@ -106,6 +108,8 @@ As the dataset contains 12 genotypes and 2 temperature treatment, after grouping
 
 In the published paper, authors mentions about the difference between after and before temperature treatments of different genotype. Here, I conducted descriptive statistical analysis by caculating mean and se (standard error), and using box-plot for visualization.
 
+### Descriptive statistical analysis
+
 ```{r}
 
 summary_d1 <- d1 |>
@@ -116,7 +120,7 @@ summary_d1 <- d1 |>
     .groups = "drop"
   ) 
 
-summary(summary_d1)
+print(summary_d1)
 
 d1$Group <- factor(d1$Group, levels = sort(unique(d1$Group)))
 boxplot(Length ~ Group, data = d1, xlab = " ", ylab = "Hypocotyl length (mm)", cex.axis = 0.5,
@@ -126,7 +130,9 @@ boxplot(Length ~ Group, data = d1, xlab = " ", ylab = "Hypocotyl length (mm)", c
 
 ```
 
-From summary_d1, group ranges from 2.479351 (lhp1 21°C) to 7.771302 (Col-0 27°C). The high temperature affect some of the groups of genotype (ex: Col-0), but some of them are not likely affected (ex: ein2-5 lhp1). To see whether these groups are affected or not, I performed two-tailed ANOVA, following by Tukey HSD test, to determine significance of data.
+At 27°C, Col-0 hypocotyls elongate from 3.72 mm to 7.77 mm. Mutants like ein2-5 (3.55 → 6.18 mm) and lhp1-3 (2.48 → 4.71 mm) show reduced elongation. Double/triple mutants such as ein2-5 lhp1-3 (2.58 → 2.91 mm) and ein3-1 eil1-1 lhp1-6 (2.51 → 2.72 mm) show minimal response. In contrast, proLHP1::gLHP1-GFP / lhp1-6 restores elongation (3.68 → 7.58 mm), demonstrating that LHP1 is sufficient to rescue thermomorphogenesis.
+
+To see whether genotype or temperature significantly affect hypocotyl length, I performed two-tailed ANOVA, following by Tukey HSD test, to determine significance of data.
 
 In two-tailed ANOVA, I want to see effect of (1) individual genotype or temperature on hypocotyl length (mm) and (2) groups of genotype and temperature on hypocotyl length (mm).
 
@@ -139,10 +145,9 @@ aov_result2 <- aov(Length ~ Group, data = d1)
 summary(aov_result2)
 ```
 
-Results: The first ANOVA revealed significant effects of genotype (F(11, 627) = 1068.1, p < 2e-16), and temperature (F(1, 627) = 8485.0, p< 2e-16) on hypocotyl length. These results indicate that both genetic background and growth temperature strongly influence hypocotyl elongation. The second ANOVA shows there is a highly significant effect of genotype-temperature combinations on hypocotyl length (ANOVA, F(23, 627) = 1046, p < 2e-16), indicating that interaction between genetic background and temperature strongly influence growth.
+Results: The first ANOVA revealed significant effects of genotype (F(11, 627) = 1068.1, p \< 2e-16), and temperature (F(1, 627) = 8485.0, p\< 2e-16) on hypocotyl length. These results indicate that both genetic background and growth temperature strongly influence hypocotyl elongation. The second ANOVA shows there is a highly significant effect of genotype-temperature combinations on hypocotyl length (ANOVA, F(23, 627) = 1046, p \< 2e-16), indicating that interaction between genetic background and temperature strongly influence growth.
 
-Then I peformed Tukey HSD test to answer question: 
-"Which specific genotype-temperature groups are significantly different from each other?"
+Then I peformed Tukey HSD test to answer question: "Which specific genotype-temperature groups are significantly different from each other?"
 
 ```{r}
 # Tukey HSD and compact letter display
@@ -151,7 +156,7 @@ letters_d1 <- cld(tukey_result)$mcletters$Letters
 summary(letters_d1)
 ```
 
-Tukey HSD comparisons revealed that many genotype-temperature combinations differ significantly. For instance, lhp1-3, ein2-5 lhp1-3, and ein3-1 eil1-1 lhp1-3 mutants had significantly shorter hypocotyls than wild-type (wt) at 21°C (p < 0.01). Most genotypes showed significantly longer hypocotyls at 27°C compared to 21°C, indicating strong temperature responsiveness. However, some mutants (e.g. ein2-5 lhp1-3) showed less elongation, suggesting impaired thermoresponsive growth.
+Tukey HSD comparisons revealed that many genotype-temperature combinations differ significantly. For instance, lhp1-3, ein2-5 lhp1-3, and ein3-1 eil1-1 lhp1-3 mutants had significantly shorter hypocotyls than wild-type (wt) at 21°C (p \< 0.01). Most genotypes showed significantly longer hypocotyls at 27°C compared to 21°C, indicating strong temperature responsiveness. However, some mutants (e.g. ein2-5 lhp1-3) showed less elongation, suggesting impaired thermoresponsive growth.
 
 ```{r}
 # merge letters to summary dataset
@@ -371,16 +376,13 @@ Violin plot shows that the expression reduction was significant in all three mut
 
 ## Discussion and Reflection
 
-For this data analysis replication, 2 set of data (phenotype and RNA-seq) were replicated. In which, phenotype data was fully replicated and RNA-seq was partially replicated. 
-1. Phenotype:
-ANOVA and Turkey HD test was successfully performed. There is one difference in representing letters, but the significances were replicated are the same.
+For this data analysis replication, 2 set of data (phenotype and RNA-seq) were replicated. In which, phenotype data was fully replicated and RNA-seq was partially replicated. 1. Phenotype: ANOVA and Turkey HD test was successfully performed. There is one difference in representing letters, but the significances were replicated are the same.
 
-2. RNA-seq:
-Heatmap generate from this assignment is somewhat different to orginal paper.
-+ Heatmap I generated and orginal paper have some differences in expression pattern, it maybe come from different data filter protocol and also map process. Overall, I get the results somehow reflect same trends as in the original paper.
-+ log2FC (range -4 to 4) instead of (-4 to 8) in original paper. 
-Using (-4 to 8) with my samples results in all blue color in heatmap, makes it harder to indentify lower expression gene. Therefore, I changed it to -4 to 4.
-+ t-test and violin plot: While violin plot from orginal paper, authors used same letter c for ein2-5 and lhp1-3 groups, t-test results from my samples showed significant difference between ein2-5 and lhp1-3 group, even though the difference was smaller than other comparision. I still manually added letter c for ein2-5 and lhp1-3 groups in violin plot, but it doesn't really reflect my t-test results. I hypothesized that authors used smaller threshold ( p-value = 0.01), but in legend, they said they used p-value = 0.05 instead. However, this difference doesn't affect the conclusion that there is significant difference in Col-0 compared to other mutants.
+2.  RNA-seq: Heatmap generate from this assignment is somewhat different to orginal paper.
+
+-   Heatmap I generated and orginal paper have some differences in expression pattern, it maybe come from different data filter protocol and also map process. Overall, I get the results somehow reflect same trends as in the original paper.
+-   log2FC (range -4 to 4) instead of (-4 to 8) in original paper. Using (-4 to 8) with my samples results in all blue color in heatmap, makes it harder to indentify lower expression gene. Therefore, I changed it to -4 to 4.
+-   t-test and violin plot: While violin plot from orginal paper, authors used same letter c for ein2-5 and lhp1-3 groups, t-test results from my samples showed significant difference between ein2-5 and lhp1-3 group, even though the difference was smaller than other comparision. I still manually added letter c for ein2-5 and lhp1-3 groups in violin plot, but it doesn't really reflect my t-test results. I hypothesized that authors used smaller threshold ( p-value = 0.01), but in legend, they said they used p-value = 0.05 instead. However, this difference doesn't affect the conclusion that there is significant difference in Col-0 compared to other mutants.
 
 ## References
 
